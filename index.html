@@ -29,7 +29,7 @@
             <label for="imputSports">add something related to sports</label>
             <input type="text" id="imputSports">
             <br>
-            <!-- submit button info.when this is clicked, things happen -->
+            <!-- submit button info. when this is clicked, things happen -->
             <input id="addEntry" type="submit" value="create button">
         </form>
         <!-- all the pictures get dumped inside the displayedDIV -->
@@ -42,7 +42,7 @@
         // Initial array of sports
         var sports = ["Soccer", "Football", "Baseball", "Basketball"];
 
-        // Need to double check this- we want to make sure anything we click on has can be identified by class sport. class sport allows us to click on it and spit out the info stored in the content funtion. If we call the function 'content' below, it destroys everything.
+        // class sport allows us to click on it and spit out the info stored in the content funtion. If we call the function 'content' below, it destroys everything.
         $(document).on("click", ".sportButton", content);
 
         // Calling the renderButtons function to display the intial buttons so we can run things.
