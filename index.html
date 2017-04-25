@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>SPORTSHW</title>
+    <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+        margin: 10px;
+    }
+
+    .sportDiv{
+        display: inline-block;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>sports related things!</h1>
+        <!-- buttons-view is where the creation of buttons is actually housed  -->
+        <div id="buttons-view"></div>
+        <!--where the submit button and entry bar are housed -->
+        <form id="sportsForm">
+            <!-- imputSports  is where we can search for things we want to make into GIFS, when the submit button is pressed, what we typed here will be pushed into the array of var sports and displayed-->
+            <label for="imputSports">add something related to sports</label>
+            <input type="text" id="imputSports">
+            <br>
+            <!-- submit button info.when this is clicked, things happen -->
+            <input id="addEntry" type="submit" value="create button">
+        </form>
+        <!-- all the pictures get dumped inside the displayedDIV -->
+        <div id="displayedDIV"></div>
+        <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+        <script type="text/javascript">
+
+// Code on creation of page when first loaded
+
+        // Initial array of sports
+        var sports = ["Soccer", "Football", "Baseball", "Basketball"];
+
+        // Need to double check this- we want to make sure anything we click on has can be identified by class sport. class sport allows us to click on it and spit out the info stored in the content funtion. If we call the function 'content' below, it destroys everything.
+        $(document).on("click", ".sportButton", content);
+
+        // Calling the renderButtons function to display the intial buttons so we can run things.
+        renderButtons();
+
+// Functions
+
+        // content function re-loads the HTML to display the content
+        function content() {
+
+            var sport = $(this).attr("data-name");
+
+            var queryURL = "http://api.giphy.com/v1/gifs/search?q=" +
+                sport + "&api_key=dc6zaTOxFJmzC&limit=10";
+
+            // Creating an AJAX call for what we type in search bar
+            $.ajax({
+                url: queryURL,
+                method: "GET"
+            }).done(function(response) {
+
+                //to get results, have to narrow down search engine to this point
+                for (var i = 0; i < 10; i++) {
+                    // this gets linked to the displayedDIV, creating 10 things each with class='sport'. in each <div class='sport'> houses the p rating and the img src
+                    var sportDIV = $("<div class='sportDiv'>");
+
+                    // grabs info from database then narrows down to give us the rating
+                    var rating = response.data[i].rating;
+
+                    // Creating the spot that can display the text then the jQuery adds the rating next to it
+                    var pOne = $("<p>").text("Rating: " + rating);
+
+                    // this line tells the sportsDiv to print pOne in it.
+                    sportDIV.append(pOne);
+
+                    // create a place for the GIFS to be displayed and give it a class called gif
+                    var gif = $("<img>");
+                    gif.addClass("gif");
+
+                    // put URLs in string variables
+                    var stillUrl = response.data[i].images.fixed_height_still.url;
+                    var animatedUrl = response.data[i].images.fixed_height.url;
+
+                    // set URL attributes of the gif
+                    gif.attr("data-animating", animatedUrl);
+                    gif.attr("data-still", stillUrl);
+
+                    // set src attribute of the gif (this is is the attribute
+                    // that actually sets what the gif looks like at start)
+                    gif.attr("src", stillUrl);
+
+                    // add status-of-data attribute and set to "still".
+                    // This allows the gifClick function to know that
+                    // the gif is currently in the "still" state.
+                    gif.attr("status-of-data", "still");
+
+                    // append the gif to the sportDiv
+                    sportDIV.append(gif);
+
+                    // activate the gifclick event for the gif currently being made- gifclick defined at bottom
+                    $(gif).on("click", gifClick);
+
+                    // Putting the entire sport above the previous sports
+                    $("#displayedDIV").prepend(sportDIV);
+                }
+            });
+        }
+
+        // Function for displaying sport data
+        function renderButtons() {
+
+          console.log("render buttons");
+            // Deleting the sports prior to adding new sports to prevent duplicates
+            $("#buttons-view").empty();
+
+            // everytime we create a new button, this deletes all the lines of buttons then prints everything including new one to the screen
+            for (var i = 0; i < sports.length; i++) {
+
+                // create a button for each sport in array including new ones
+                // This code $("<button>") is all jQuery needs to create the beginning and end tag. (<button></button>)
+
+
+                //creates a button
+                var a = $("<button>");
+
+
+                // gives our new button the class of sport
+                a.addClass("sportButton");
+
+
+                // Adding a data-attribute so it can be considered like all the other buttons in the for loop above
+                a.attr("data-name", sports[i]);
+
+
+                // Providing the initial button text
+                a.text(sports[i]);
+
+
+                // Adding the button to the buttons-view div with all the other buttons
+                $("#buttons-view").append(a);
+            }
+        }
+
+        // This function handles events where the add entry button is clicked
+        $("#addEntry").on("click", function(event) {
+            event.preventDefault();
+            // This line grabs the input from the textbox
+            var sport = $("#imputSports").val().trim();
+
+            // what we typed in the search bar will be then pushed into the array called var sports,
+            sports.push(sport);
+
+            $("#imputSports").val("");
+
+            // Calling renderButtons which makes the buttons for sports array
+            renderButtons();
+
+            console.log("add entry");
+        });
+
+        //everything above deals with regular gif, nothing about pausing and restarting
+
+        //this JS is to make the pause/restart settings to the gif
+        function gifClick() {
+            // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+
+            var state = $(this).attr("status-of-data");
+            console.log("state: " + state);
+
+            // If the clicked image's state is still, update its src attribute to what its dataAnimating value is.
+            // Then, set the image's statusOfData to animate
+            // Else set src to the dataStill value
+            if (state === "still") {
+                $(this).attr("src", $(this).attr("data-animating"));
+                $(this).attr("status-of-data", "animate");
+            } else {
+                $(this).attr("src", $(this).attr("data-still"));
+                $(this).attr("status-of-data", "still");
+            }
+        }
+        </script>
+    </div>
+</body>
+
+</html>
